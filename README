@@ -1,0 +1,51 @@
+WWW-ICRT
+========
+
+NAME
+       WWW::ICRT - ICRT agent
+
+SYNOPSIS
+           my $icrt = new WWW::ICRT;
+
+           @log = $icrt->musiclog();
+           foreach (@log) {
+               print "$_->{time} => $_->{title} by $_->{artist}\n";
+           }
+
+           $icrt->request_song(
+                               from => 'my.email@domain.org',
+                               to => 'buzzzzzz',
+                               subject => 'Song request',
+                               text => $text,
+                               );
+
+           $icrt->rate_current_song(
+                                    5
+                                    );
+
+DESCRIPTION
+       This module is an agent for accessing information on ICRT
+       (International Community Radio Taipei,
+       http://www.icrt.com.tw ). You can use module to view the
+       music log, request songs and rate them.
+
+
+
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2004 by Yung-chung Lin (a.k.a. xern) <xern@cpan.org>
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself

@@ -1,0 +1,6 @@
+Revision history for Perl extension WWW::ICRT.
+
+0.01  Thu Mar  4 23:56:52 2004
+	- original version; created by h2xs 1.23 with options
+		-XA WWW::ICRT
+
