@@ -23,12 +23,17 @@ SYNOPSIS
                                     5
                                     );
 
+           $icrt->get_eznews_audio();
+
+           $icrt->get_eznews();
+           $icrt->get_twnews();
+
 DESCRIPTION
        This module is an agent for accessing information on ICRT
        (International Community Radio Taipei,
-       http://www.icrt.com.tw ). You can use module to view the
-       music log, request songs and rate them.
-
+       <http://www.icrt.com.tw> ). You can use module to view the
+       music log, request songs, rate songs, and fetch online
+       news.
 
 
 

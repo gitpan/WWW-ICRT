@@ -1,11 +1,15 @@
 use Test::More qw(no_plan);
+use ExtUtils::testlib;
 BEGIN{ use_ok('WWW::ICRT') }
 
 my $icrt = new WWW::ICRT;
 
 ok($icrt->musiclog());
-
 ok(defined $icrt->rate_current_song(int(1+rand(10))));
+ok($icrt->get_eznews_audio());
+ok($icrt->get_eznews());
+ok($icrt->get_twnews());
+
 
 __END__
 print "----\n";

@@ -1,12 +1,13 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         WWW-ICRT
-version:      0.01
+version:      0.02
 version_from: lib/WWW/ICRT.pm
 installdirs:  site
 requires:
     File::Slurp:                   9999.03
     Mail::Mailer:                  1.60
+    Regexp::Bind:                  0.02
     Text::MicroMason:              1.07
     WWW::Mechanize:                0.72
 

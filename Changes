@@ -4,3 +4,5 @@ Revision history for Perl extension WWW::ICRT.
 	- original version; created by h2xs 1.23 with options
 		-XA WWW::ICRT
 
+0.02  Mon, 15 Mar 2004 21:51:57 +0800
+	- added get_eznews_audio(),  get_eznews_text(),  get_twnews_audio()

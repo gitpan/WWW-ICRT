@@ -1,29 +1,28 @@
 package WWW::ICRT;
 
 use strict;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Text::MicroMason;
 use File::Slurp;
 use Mail::Mailer;
 use WWW::Mechanize;
+use Regexp::Bind qw(bind global_bind);
 
-
-sub new {
-    bless {}, shift;
-}
+sub new { bless {
+		 mech => WWW::Mechanize->new(),
+		}, shift }
 
 our $base = "http://www.icrt.com.tw/";
 
+our $musiclog_template = qr!<tr class='odd'><td bgcolor='.+?'>\s*(\d\d:\d\d:\d\d)\s*</td><td><a title='Vote this song' href='rate_song.php\?song_id=\d+'>\s*(.+?)\s*<small>by</small>\s*(.+?)\s*</a></td></tr>!mo;
+
 sub musiclog {
-    (my $mech = WWW::Mechanize->new())->get($base."en/music_log.php");
+    (my $mech = $_[0]->{mech})->get($base."/en/music_log.php");
     my $content = $mech->content;
     die "Couldn't get the log!" unless defined $content;
     my @log;
-    while($content =~ m,<tr class='odd'><td bgcolor='.+?'>\s*(\d\d:\d\d:\d\d)\s*</td><td><a title='Vote this song' href='rate_song.php\?song_id=\d+'>\s*(.+?)\s*<small>by</small>\s*(.+?)\s*</a></td></tr>,mgo){
-	push @log => { time => $1, title => $2, artist => $3 };
-    }
-    @log;
+    @log = global_bind($content, $musiclog_template, qw(time title artist));
 }
 
 sub request_song {
@@ -90,18 +89,55 @@ TEMPLATE
 sub rate_current_song {
     my $self = shift;
     die "score should be from 1 to 10" unless $_[0] >=1 && $_[0] <=10;
-    my $mech = WWW::Mechanize->new();
 
-    $mech->get($base."/en/rate_song.php");
-    $mech->submit_form(
+    $self->{mech}->get($base."/en/rate_song.php");
+    $self->{mech}->submit_form(
 		       form_number => 1,
 		       fields      => {
 			   vote_score    => $_[0],
 		       }
 		       );
-    $mech->content =~ m,<tr><th\s*>Average</th><td class='head'>(.+?)</td></tr>,;
+    $self->{mech}->content =~ m,<tr><th\s*>Average</th><td class='head'>(.+?)</td></tr>,;
     $1;
 }
+
+sub get_eznews_audio {
+    my $self = shift;
+    $self->{mech}->get($base."/en/eznewsaudiodownload.php");
+    $self->{mech}->content;
+}
+
+our $news_template = qr,Subject: (.+?)<br>\n.+?<PRE>(.+?)</PRE>,s;
+
+sub convert_newline {
+  $_[0]=~s/\r//go;
+  $_[0];
+}
+
+sub _filter_news {
+  my $n = shift;
+  $n->{text} =~ s/\n+$//so;
+  $n->{subject} = ucfirst $n->{subject};
+  $n
+}
+
+our %news_url = qw(
+		   ez en/eznews.php
+		   tw en/twnews.php
+		  );
+sub _get_news {
+  my $self = shift;
+  $self->{mech}->get($base.$news_url{shift()});
+  map{ _filter_news $_ }
+    global_bind(convert_newline($self->{mech}->content),
+		$news_template,
+		qw(subject text));
+  
+}
+
+sub get_eznews { shift()->_get_news('ez') }
+sub get_twnews { shift()->_get_news('tw') }
+
 
 1;
 __END__
@@ -131,11 +167,16 @@ WWW::ICRT - ICRT agent
     $icrt->rate_current_song(
 			     5
                              );
+
+    $icrt->get_eznews_audio();
+
+    $icrt->get_eznews();
+    $icrt->get_twnews();
     
 
 =head1 DESCRIPTION
 
-This module is an agent for accessing information on ICRT (International Community Radio Taipei, L<http://www.icrt.com.tw> ). You can use module to view the music log, request songs and rate them.
+This module is an agent for accessing information on ICRT (International Community Radio Taipei, L<http://www.icrt.com.tw> ). You can use module to view the music log, request songs, rate songs, and fetch online news.
 
 =head2 musiclog
 
@@ -179,6 +220,22 @@ It will return 1 if the request is processed.
 You can call this to rate the current song on a scale from 1 to 10. And it returns the current average rating.
 
 See also L<http://www.icrt.com.tw/en/rate_song.php>
+
+=head2 get_eznews_audio, get_eznews, get_twnews
+
+   # fetch audio file of ez news, and it returns
+   # the binary content of audio file
+   $audio = $icrt->get_eznews_audio();
+
+   # fetch texts of ez news and taiwan news
+   foreach (
+            @{$icrt->get_eznews()},
+            @{$icrt->get_twnews()}
+           ){
+      print "$_->{subject} $_->{text};
+   }
+
+See also L<http://www.icrt.com.tw/en/eznews.php> and L<http://www.icrt.com.tw/en/twnews.php>
 
 =head1 COPYRIGHT AND LICENSE
 
